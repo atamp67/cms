@@ -1,5 +1,5 @@
 <?php
-// session_start();
+session_start();
 
 // include event class 
 include_once 'class/Event.php';
@@ -20,6 +20,15 @@ function alert_msg($msg) {
   echo  '</script>'; 
 }
 
+// var_dump($_FILES['files']);
+// die();
+
+$_SESSION['title'] = $post['title'];
+$_SESSION['content'] = $post['content'];
+$_SESSION['status'] = $post['status'];
+$_SESSION['options'] = $post['options'];
+$_SESSION['category'] = $post['category'];
+$_SESSION['files'] = $_FILES['files'];
 
 include "./file_upload.php";
 
@@ -91,15 +100,7 @@ if(!empty($post['action']) && $post['action']=="create") {
         }
             store_files($store_files_base_name, "files");
         }
-    } else {
-      $_SESSION['error_post'] = "There was an Error!";
-      $_SESSION['title'] = $post['title'];
-      $_SESSION['content'] = $post['content'];
-      $_SESSION['status'] = $post['status'];
-      $_SESSION['options'] = $post['options'];
-      $_SESSION['category'] = $post['category'];
-      header("location: ./make_post.php");
-    }
+    } 
     if($file_count == 0){
       $_SESSION['success_msg'] = "Post Successfully Created!";
       echo "files are uploaded successfully";

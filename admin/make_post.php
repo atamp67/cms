@@ -160,12 +160,14 @@ include('inc/header.php');
 			<?php include "left_menus.php"; ?>
 			<div class="col-md-9">
 				<?php
+					$error = false;
 					if (isset($_SESSION['err_msg'])) {
 						$msg = $_SESSION['err_msg'];
 						echo "<div class='alert alert-danger alert-dismissible  fade in	' role='alert'>
 						<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
 						<strong>$msg</strong>
 						</div>";
+						$error = true;
 						unset($_SESSION['err_msg']);
 					}
 					if (isset($_SESSION['error_msg'])) {
@@ -205,15 +207,12 @@ include('inc/header.php');
               <div class="col-sm-12"> 
 			  <?php
 					global $arrCategories;
-					if (isset($_SESSION['category'])) {
+					if ($error) {
 						createTreeView2($arrCategories, 0);
-						// unset($_SESSION['category']);
-						var_dump($_SESSION['category']);
-						die();
-					}
+						unset($_SESSION['category']);
+						}
 					else
-						// die();
-						// createTreeView($arrCategories, 0);
+						createTreeView($arrCategories, 0);
     		  ?>
             </div>
             </div>
@@ -221,15 +220,36 @@ include('inc/header.php');
             <br><br>
            <div class="form-group">
               <div class="col-sm-12">          
-                <input type="text" required minlength="1" pattern="[a-zA-Z]{1,}[0-9\W+\S+]{0,}" class="form-control" id="event-title" placeholder="Title" name="title">
+                <input type="text" required minlength="1" pattern="[a-zA-Z]{1,}[0-9\W+\S+]{0,}" class="form-control" id="event-title" placeholder="Title" name="title" value="<?php if ($error) echo $_SESSION['title']; else '';?>">
               </div>
             </div> 
             <br><br>
             <div class="form-group">
               <div class="col-sm-12">
-                <textarea class="form-control" id="event-content" name="content"></textarea>
+                <textarea class="form-control" id="event-content" name="content">
+					<?php
+						if ($error)
+							echo $_SESSION['content'];
+						else
+							echo "";
+					?>
+				</textarea>
               </div>
             </div>
+			<?php if ($error) {?>
+				<div class="form-group">
+              <div class="col-sm-12">
+                <br>
+                <label>Post Options</label>
+                <?php 
+                    $options = $_SESSION['options'];
+                ?>
+                <br>
+                <label><input type="checkbox"  name="options[]" value="Make it Featured" <?php if (in_array("Make it Featured", $options)) echo "checked";?>>&nbsp;<span><i class="fa-solid fa-star fa-sm"></i> Make it Featured</span></label>
+                <label style="margin-left: 10px;"><input type="checkbox" name="options[]" value="Make it Visible" <?php if (in_array("Make it Visible", $options)) echo "checked";?>>&nbsp;<span><i class="fa-solid fa-eye fa-sm"></i> Make it Visible</span></label>
+              </div>
+            </div>
+			<?php } else { ?>
             <div class="form-group">
               <div class="col-sm-12">
                 <br>
@@ -239,11 +259,38 @@ include('inc/header.php');
                 <label style="margin-left: 10px;"><input type="checkbox" name="options[]" value="Make it Visible">&nbsp;<span><i class="fa-solid fa-eye fa-sm"></i> Make it Visible</span></label>
               </div>
             </div>
+			<?php } ?>
             <div class="form-group">
               <div class="col-sm-12">
                 <br>
                 <label>Attach File</label>
                 <br>
+				<?php if ($error) { ?>
+					<?php 
+						$cnt = count($_SESSION['files']); 
+						$rec_files = $_SESSION['files'];
+						$res = scandir("uploads/temp/");
+						for ($i = 0; $i < $cnt; $i++) {
+							if (in_array($rec_files["name"][$i], $res)) {
+							
+					?>
+					<div class="row" id="attachfile<?php echo $i; ?>">
+                    <div class="col-md-2" >
+						<img src="uploads/temp/<?php echo $rec_files['name'][$i];?>" width="80px" height="40px"/>
+					</div>
+					<input type="hidden" name="file[]" value="<?php echo $i; ?>" />
+					<div class="col-md-4" >
+						<input type="text" name="caption[]" value="<?php echo $rec_files['name'][$i]; ?>"  placeholder="Enter Caption (optional)" style="border: 1px solid grey; padding: 11px; margin-left: 10px;"/>
+					</div>
+					<div class='col-md-2' >
+            			<a class='remove_prev_file' data-val='attachfile<?php echo $i; ?>' data-fileid='<?php echo $i; ?>' data-path='<?php echo "req_id"; ?>'><span class='rmfile'>X</span></a>
+        			</div>
+					<br>
+				</div>
+				<?php 
+				}
+			}
+			} else { ?>
                 <div class="row" id="attachfile">
 					<div class="col-md-4" >
 						<input type="file" name="files[]" style="border: 1px solid grey; padding: 10px;"/>
@@ -253,12 +300,28 @@ include('inc/header.php');
 					</div>
 					<br>
 				</div>
+				<?php } ?>
 				<div>
 					<a class="btn btn-sm btn-primary" id="addfile" style="margin-top: 4px;">Add More</a>
 				</div>
               </div>
             </div>
 			<label for="name" class="control-label"><br>Status</label>
+						<?php if ($error) {
+							$data = $_SESSION['status']; ?>
+							<div class="form-group"> 
+								<div class="col-sm-3">
+										<label class="radio-inline">
+											<input name="status" id="input-status-draft" type="radio" value="draft" <?php if ($data == "draft") echo "checked"; ?>/>Draft
+										</label>
+								</div>
+							<div class="col-sm-3">
+									<label class="radio-inline">
+										<input name="status" id="input-status-publish" type="radio" value="published" <?php if ($data == "published") echo "checked"; ?>/>Published 
+									</label>
+							</div>
+						</div>
+						<?php } else { ?>
 						<div class="form-group"> 
 							<div class="col-sm-3">
 									<label class="radio-inline">
@@ -271,6 +334,7 @@ include('inc/header.php');
 									</label>
 							</div>
 						</div>
+						<?php } ?>
 						<br>
             <div class="form-group">        
               <div class="col-sm-12">

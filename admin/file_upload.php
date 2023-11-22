@@ -68,6 +68,18 @@ for ($i = 0; $i < $file_count; $i++) {
     // validate the file type
     if (!in_array(get_mime_type($tmp), array_keys(ALLOWED_FILES))) {
         $errors[$filename] = "The file $filename is not allowed to upload";
+    } 
+    else {
+        $mime_type = get_mime_type($tmp);
+        $uploaded_file = pathinfo($filename, PATHINFO_FILENAME) . '.' . ALLOWED_FILES[$mime_type];
+        $filepath = UPLOAD_DIR . '/' . 'temp' . '/' . $uploaded_file;
+        $success = move_uploaded_file($tmp, $filepath);
+        // if($success) {
+        //     var_dump($uploaded_file);
+        //     die();
+        // } else {
+            
+        // }
     }
 }
 
